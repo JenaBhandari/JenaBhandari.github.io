@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>CURVE Webpage Prototype</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:ital,wght@0,100..700;1,100..700&display=swap" rel="stylesheet">
+<style>
+    body {
+      background-color: rgb(202, 223, 206);
+      text-align: center;
+      padding-top: 100px;
+    }
+    .overlay {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: rgba(0, 0, 0, 0.5);
+      width: 100%;
+      height: 100%;
+      display: none;
+    }
+    .confirmation-box {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: white;
+      padding: 20px;
+      border-radius: 5px;
+      text-align: left;
+    }
+
+    .buttons
+    {
+      text-align: center;
+    }
+
+    h1, h2 {
+      font-family: "Josefin Sans", serif;
+    }
+
+    #ageRangeFields {
+      display: none;
+    }
+
+    label{
+      font-size: 1.2em;
+    }
+
+    .form-group
+    {
+      padding: 10px;
+    }
+
+  </style>
+</head>
+<body>
+  <h1>Submit Your Information</h1>
+  <form action="#" method="post" class="container col-6">
+    <div class="form-group">
+      <label for="gender">Gender:</label>
+      <select id="gender" name="gender" class="form-control">
+        <option value="male">Male</option>
+        <option value="female">Female</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="age">Age:</label>
+      <div class="form-check">
+        <input type="checkbox" class="form-check-input" id="ageRangeCheckbox">
+        <label class="form-check-label" for="ageRangeCheckbox">Age Range</label>
+      </div>
+      <div id="ageRangeFields">
+        <input type="number" id="ageBottom" name="ageBottom" min="1" max="149" class="form-control" placeholder="Minimum Age">
+        <input type="number" id="ageTop" name="ageTop" min="2" max="150" class="form-control" placeholder="Maximum Age">
+      </div>
+      <input type="number" id="age" name="age" min="0" max="150" class="form-control" placeholder="Age">
+      <small class="form-text text-danger" id="ageError"></small>
+    </div>
+
+    <div class="form-group">
+      <label for="zipcode">Zipcode:</label>
+      <input type="number" id="zipcode" name="zipcode" minlength="5" maxlength="5" class="form-control" placeholder="Zipcode">
+      <small class="form-text text-danger" id="zipcodeError"></small>
+    </div>
+
+    <button type="button" class="btn btn-primary" id="submitButton">Hover to 'Submit'</button>
+  </form>
+
+  <div class="overlay" id="loadingOverlay">
+    <div class="confirmation-box">
+      <h2>Loading... this will take around 3 seconds</h2>
+    </div>
+  </div>
+
+  <div class="overlay" id="overlay">
+    <div class="confirmation-box">
+      <h2>Do you really want to submit that?</h2>
+      <h5>From this information, I can presume with 85% certainty that...</h5>
+      <div id="overlay_income" >
+
+      </div>
+      <div id="overlay_edu" >
+        
+      </div>
+      <div class="buttons">
+        <button type="button" class="btn btn-primary" id="confirmSubmit">Yes, Submit</button>
+        <button type="button" class="btn btn-secondary" id="cancelSubmit">No Thank You</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS and jQuery scripts -->
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+  <script>
+    let isOverlayVisible = false;
+    
+    window.addEventListener('load', function () {
+    let isOverlayVisible = false;
+
+    // Show loading overlay
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    loadingOverlay.style.display = 'block';
+
+    // Fetch data from the server
+    fetch('/load-data', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            // Add form data here
+        }),
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Hide loading overlay once data is loaded
+        loadingOverlay.style.display = 'none';
+
+        // Process loaded data
+        console.log('Data loaded:', data);
+
+    })
+    .catch(error => {
+        // Hide loading overlay if an error occurs
+        loadingOverlay.style.display = 'none';
+        
+        console.error('Error:', error);
+    });
+});
+
+    document.getElementById('ageRangeCheckbox').addEventListener('change', function () {
+        const ageRangeFields = document.getElementById('ageRangeFields');
+        const age = document.getElementById('age');
+        ageRangeFields.style.display = this.checked ? 'block' : 'none';
+        age.style.display = this.checked ? 'none' : 'block';
+
+    });
+
+    // Show overlay and confirmation box on hover
+    document.getElementById('submitButton').addEventListener('mouseover', function () {
+      
+      okay = true;
+      const ageInput = document.getElementById('age');
+      const ageError = document.getElementById('ageError');
+      const ageBottomInput = document.getElementById('ageBottom');
+      const ageTopInput = document.getElementById('ageTop');
+      const zipcodeInput = document.getElementById('zipcode');
+      const zipcodeError = document.getElementById('zipcodeError');
+      const genderInput = document.getElementById('gender');
+
+      if (document.getElementById('ageRangeCheckbox').checked) {
+        if ((!ageBottomInput.value || ageBottomInput.value < 1 || ageBottomInput.value > 149) ||
+          (!ageTopInput.value || ageTopInput.value < 2 || ageTopInput.value > 150) ||
+          (parseInt(ageBottomInput.value) > parseInt(ageTopInput.value))) {
+          ageError.textContent = 'Please enter a valid continous age range (1-149) and (bottom < top).';
+          okay = false;
+        } else {
+          ageError.textContent = '';
+        }
+      } else {
+        if (!ageInput.value || ageInput.value < 0 || ageInput.value > 150) 
+        {
+          ageError.textContent = 'Please enter a valid age between 0 and 150.';
+          okay = false;
+        } 
+        else 
+        {
+          ageError.textContent = '';
+        }
+      }
+
+      if (!zipcodeInput.value || zipcodeInput.value.length !== 5 || isNaN(zipcodeInput.value)) {
+        zipcodeError.textContent = 'Please enter a valid 5-digit zipcode.';
+        okay = false;
+      } 
+      else 
+      {
+        zipcodeError.textContent = '';
+      }
+
+      if (okay)
+      {
+        
+        fetch('/submit-data', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+        zip_code: zipcodeInput.value, // Retrieve the value using .value
+        gender: genderInput.value, // Retrieve the value using .value
+        age: ageInput.value, // Retrieve the value using .value
+        age_range: document.getElementById('ageRangeCheckbox').checked,
+        age_bottom: ageBottomInput.value, // Retrieve the value using .value
+        age_top: ageTopInput.value // Retrieve the value using .value
+        }),
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Handle the response data
+        console.log(data);
+        const overlayText = document.querySelector('.confirmation-box p');
+        document.getElementById('overlay_income').textContent = "You have an income in the range: " + data.inference_income;
+        document.getElementById('overlay_edu').textContent= "You have an educational attainment of one of the following: " + data.inference_edu;
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+        
+        document.getElementById('overlay').style.display = 'block';
+        isOverlayVisible = true;
+
+
+
+
+      }
+
+    });
+
+    // Hide overlay and confirmation box on mouseout
+    document.getElementById('overlay').addEventListener('mouseleave', function () {
+      if (!isOverlayVisible) {
+        document.getElementById('overlay').style.display = 'none';
+      }
+    });
+
+    // Form submission on confirmation
+    document.getElementById('confirmSubmit').addEventListener('click', function () {
+      document.querySelector('form').reset();
+      document.getElementById('overlay').style.display = 'none';
+      alert('Data Submitted!');
+      isOverlayVisible = false;
+    });
+
+    // Cancel submission
+    document.getElementById('cancelSubmit').addEventListener('click', function () {
+      document.getElementById('overlay').style.display = 'none';
+      isOverlayVisible = false;
+    });
+
+    document.querySelector('form').addEventListener('submit', function (e) {
+    e.preventDefault(); // Prevent default form submission
+    
+    });
+
+  </script>
+</body>
+</html>
